@@ -70,7 +70,6 @@ const VehicleUpfitSchedule = () => {
   const [teamMembers, setTeamMembers] = useState(['John Smith', 'Jane Doe', 'Mike Johnson']);
   const daysInMonth = 30;
 
-  // Simulated auto-save (in real app, this would save to Firebase)
   useEffect(() => {
     if (autoSave) {
       const timer = setTimeout(() => {
@@ -80,7 +79,6 @@ const VehicleUpfitSchedule = () => {
     }
   }, [vehicles, autoSave]);
 
-  // Load from localStorage on mount
   useEffect(() => {
     loadFromLocalStorage();
     checkForAlerts();
@@ -115,7 +113,6 @@ const VehicleUpfitSchedule = () => {
   };
 
   const checkForAlerts = () => {
-    // Check for overdue processes
     vehicles.forEach(vehicle => {
       processes.forEach(proc => {
         const schedule = getProcessSchedule(vehicle, proc);
@@ -197,16 +194,13 @@ const VehicleUpfitSchedule = () => {
     
     vehicles.forEach(vehicle => {
       processes.forEach(proc => {
-        const process = vehicle.processes[proc];
-        if (process) {
-          const schedule = getProcessSchedule(vehicle, proc);
-          const planned = process.planned;
-          const actual = process.actual;
-          const variance = actual - planned;
-          const status = process.complete ? 'Complete' : 
-                        (currentDay > schedule.endDay ? 'Overdue' : 'On Track');
-          csv += `${vehicle.name},${vehicle.priority},${vehicle.assignedTo},${proc},Day ${schedule.startDay},Day ${schedule.endDay},${planned},${actual},${process.complete},${variance},${status}\n`;
-        }
+        const schedule = getProcessSchedule(vehicle, proc);
+        const planned = vehicle.processes[proc].planned;
+        const actual = vehicle.processes[proc].actual;
+        const variance = actual - planned;
+        const status = vehicle.processes[proc].complete ? 'Complete' : 
+                      (currentDay > schedule.endDay ? 'Overdue' : 'On Track');
+        csv += `${vehicle.name},${vehicle.priority},${vehicle.assignedTo},${proc},Day ${schedule.startDay},Day ${schedule.endDay},${planned},${actual},${vehicle.processes[proc].complete},${variance},${status}\n`;
       });
     });
     
@@ -262,7 +256,6 @@ const VehicleUpfitSchedule = () => {
 
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 overflow-auto">
-      {/* Notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {notifications.map(notif => (
           <div
@@ -279,7 +272,6 @@ const VehicleUpfitSchedule = () => {
       </div>
 
       <div className="max-w-full mx-auto bg-white rounded-lg shadow-lg">
-        {/* Header */}
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
           <div className="flex justify-between items-center mb-4">
             <div>
@@ -334,7 +326,6 @@ const VehicleUpfitSchedule = () => {
           )}
         </div>
 
-        {/* Action Bar */}
         <div className="p-4 bg-gray-50 border-b border-gray-200">
           <div className="flex flex-wrap gap-2">
             <button
@@ -370,7 +361,6 @@ const VehicleUpfitSchedule = () => {
           </div>
         </div>
 
-        {/* Current Day Control */}
         <div className="p-4 bg-yellow-50 border-b border-yellow-200">
           <div className="flex items-center gap-4">
             <label className="font-semibold text-gray-700">Current Production Day:</label>
@@ -403,7 +393,6 @@ const VehicleUpfitSchedule = () => {
           </div>
         </div>
 
-        {/* Schedule Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-100 sticky top-0">
@@ -428,10 +417,8 @@ const VehicleUpfitSchedule = () => {
               {vehicles.map((vehicle, vIdx) => (
                 <React.Fragment key={vehicle.id}>
                   {processes.map((proc, pIdx) => {
-                    const process = vehicle.processes[proc];
-                    if (!process) return null;
-                    
                     const schedule = getProcessSchedule(vehicle, proc);
+                    const process = vehicle.processes[proc];
                     
                     return (
                       <tr key={`${vehicle.id}-${proc}`} className="hover:bg-gray-50">
@@ -542,25 +529,15 @@ const VehicleUpfitSchedule = () => {
           </table>
         </div>
 
-        {/* Analytics Dashboard */}
         <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <FileText size={24} /> Production Analytics
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {vehicles.map(vehicle => {
-              const totalPlanned = processes.reduce((sum, proc) => {
-                const process = vehicle.processes[proc];
-                return sum + (process?.planned || 0);
-              }, 0);
-              const totalActual = processes.reduce((sum, proc) => {
-                const process = vehicle.processes[proc];
-                return sum + (process?.actual || 0);
-              }, 0);
-              const completedProcesses = processes.filter(proc => {
-                const process = vehicle.processes[proc];
-                return process?.complete;
-              }).length;
+              const totalPlanned = processes.reduce((sum, proc) => sum + vehicle.processes[proc].planned, 0);
+              const totalActual = processes.reduce((sum, proc) => sum + vehicle.processes[proc].actual, 0);
+              const completedProcesses = processes.filter(proc => vehicle.processes[proc].complete).length;
               const progressPercent = (completedProcesses / processes.length) * 100;
               const variance = totalActual - totalPlanned;
               const isOnTrack = variance <= 0 && progressPercent > 0;
@@ -633,7 +610,6 @@ const VehicleUpfitSchedule = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-4 bg-gray-100 border-t text-center text-sm text-gray-600">
           <p>Enterprise Production Management System v2.0 | Last saved: {autoSave ? 'Auto-save enabled' : 'Manual save'} | User: {currentUser}</p>
         </div>
